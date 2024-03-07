@@ -1,0 +1,154 @@
+Practical 26: Please create queries for the below points.
+Create an “employee” database and 4 tables (hobby, employee, employee_salary, employee_hobby).
+hobby: id, name
+employee: id, first_name, last_name, age, mobile_number, address
+employee_salary: id, foreign key of employee, salary, date
+employee_hobby: id, foreign key of the employee, foreign key of hobby
+Insert multiple data in all tables
+Update data of all tables
+Delete 2 records of all tables
+Truncate all tables
+Create a separate select queries to get a hobby, employee, employee_salary, employee_hobby.
+Create a select single query to get all employee name, all hobby_name in single column
+Create a select query to get  employee name, his/her employee_salary
+Create a select query to get employee name, total salary of employee, hobby name(comma-separated - you need to use subquery for hobby name).
+
+
+-- Create the employee database
+CREATE DATABASE IF NOT EXISTS employee_database;
+USE employee_database;
+
+-- Create the hobby table
+CREATE TABLE IF NOT EXISTS hobby (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL
+    );
+
+-- Create the employee table
+CREATE TABLE IF NOT EXISTS employee (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    age INT,
+    mobile_number VARCHAR(15),
+    address VARCHAR(255)
+);
+
+-- Create the employee_salary table
+CREATE TABLE IF NOT EXISTS employee_salary (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    employee_id INT,
+    salary DECIMAL(10, 2),
+    date DATE,
+    FOREIGN KEY (employee_id) REFERENCES employee(id)
+);
+
+-- Create the employee_hobby table
+CREATE TABLE IF NOT EXISTS employee_hobby (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    employee_id INT,
+    hobby_id INT,
+    FOREIGN KEY (employee_id) REFERENCES employee(id),
+    FOREIGN KEY (hobby_id) REFERENCES hobby(id)
+);
+
+
+-- Insert data into hobby table
+INSERT INTO hobby (name) VALUES 
+('Reading'),
+('Swimming'),
+('Cooking'),
+('Walking'),
+('Running'),
+('Playing');
+-- Insert data into employee table
+INSERT INTO employee (id,first_name, last_name, age, mobile_number, address) VALUES 
+(1,'John', 'Doe', 30, '123-456-7890', '123 Main St'),
+(2,'Jane', 'Smith', 25, '987-654-3210', '456 Oak St'),
+(3,'rohit', 'mishra' , '20' , '52356595' , 'rajkot'),
+(4,'rachin', 'sharma', 20, '6566302325', 'vadodara'),
+(5,'ankit', 'patel', 19, '5885954512', 'surat'),
+(6,'sumit', 'mehta', 19, '6285954516', 'mumbai');
+
+
+
+-- Insert data into employee_salary table
+INSERT INTO employee_salary (employee_id, salary, date) VALUES 
+(1, 50000.00, '2024-02-01'),
+(2, 60000.00, '2024-02-01'),
+(3, 52000.00, '2024-02-01'),
+(4, 54000.00, '2024-02-01'),
+(5, 62000.00, '2024-02-01'),
+(6, 65000.00, '2024-02-01');
+
+-- Insert data into employee_hobby table
+INSERT INTO employee_hobby (employee_id, hobby_id) VALUES
+(1, 1),
+(1, 2),
+(2, 3);
+
+-- Update data in employee table
+UPDATE employee SET age = 31 WHERE id = 1;
+
+-- Update data in employee_salary table
+UPDATE employee_salary SET salary = 55000.00 WHERE id = 1;
+
+-- Update data in employee_hobby table
+UPDATE employee_hobby SET hobby_id = 2 WHERE id = 3;
+
+-- Delete records from hobby table
+DELETE FROM hobby WHERE id IN (2, 3);
+
+-- Delete records from employee table
+DELETE FROM employee WHERE id IN (1, 2);
+
+-- Delete records from employee_salary table
+DELETE FROM employee_salary WHERE id IN (1, 2);
+
+-- Delete records from employee_hobby table
+DELETE FROM employee_hobby WHERE id IN (1, 2);
+
+
+-- Truncate all tables
+TRUNCATE TABLE hobby;
+TRUNCATE TABLE employee;
+TRUNCATE TABLE employee_salary;
+TRUNCATE TABLE employee_hobby;
+
+
+-- Select query for hobby
+SELECT * FROM hobby;
+
+-- Select query for employee
+SELECT * FROM employee;
+
+-- Select query for employee_salary
+SELECT * FROM employee_salary;
+
+-- Select query for employee_hobby
+SELECT * FROM employee_hobby;
+
+-- Select single query to get all employee names and all hobby names in a single column:
+SELECT CONCAT(first_name, ' ', last_name) AS employee_name FROM employee
+UNION
+SELECT name FROM hobby;
+
+-- Select query to get employee name and their salary:
+SELECT e.first_name, e.last_name, es.salary 
+FROM employee e 
+INNER JOIN employee_salary es ON e.id = es.employee_id;
+
+-- Select query to get employee name, total salary of employee, hobby names (comma-separated):
+SELECT 
+    e.first_name, 
+    e.last_name, 
+    (SELECT SUM(es.salary) FROM employee_salary es WHERE es.employee_id = e.id) AS total_salary,
+    GROUP_CONCAT(h.name SEPARATOR ', ') AS hobbies
+FROM 
+    employee e
+LEFT JOIN 
+    employee_hobby eh ON e.id = eh.employee_id
+LEFT JOIN 
+    hobby h ON eh.hobby_id = h.id
+GROUP BY 
+    e.id;
